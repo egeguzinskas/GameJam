@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>QR Code Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --bg-1: #0f1226;
+    --bg-2: #1b1f3b;
+    --card: #171a34;
+    --accent: #7c5cff;
+    --accent-2: #22d3ee;
+    --text: #eef0ff;
+    --muted: #9aa0c3;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    min-height: 100%;
+    background: radial-gradient(circle at 20% 0%, var(--bg-2), var(--bg-1) 60%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+  }
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 {
+    font-size: 22px;
+    margin: 0 0 6px;
+    letter-spacing: 0.3px;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin: 16px 0 8px;
+  }
+  label:first-of-type { margin-top: 0; }
+  textarea, select, input[type="color"] {
+    width: 100%;
+    background: #0f1130;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    padding: 12px 14px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+  }
+  textarea { min-height: 70px; }
+  textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .row {
+    display: flex;
+    gap: 12px;
+  }
+  .row > div { flex: 1; }
+  .color-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .color-row .swatch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #0f1130;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    flex: 1;
+  }
+  .color-row input[type="color"] {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: transparent;
+  }
+  .color-row span {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  #qrStage {
+    margin-top: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+  #qrBox {
+    background: #fff;
+    padding: 16px;
+    border-radius: 16px;
+    display: inline-flex;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    min-width: 100px;
+    min-height: 100px;
+    align-items: center;
+    justify-content: center;
+  }
+  #qrBox img, #qrBox canvas {
+    display: block;
+    border-radius: 4px;
+  }
+  #placeholder {
+    color: #b9bcd4;
+    font-size: 13px;
+    text-align: center;
+    max-width: 160px;
+  }
+  .actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+  button {
+    flex: 1;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  #downloadBtn {
+    background: linear-gradient(120deg, var(--accent), var(--accent-2));
+    color: #0f1130;
+  }
+  #downloadBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  #clearBtn {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .hint {
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>QR Code Generator</h1>
+    <p>Turn any text or link into a scannable code</p>
+  </header>
+
+  <div class="card">
+    <label for="textInput">Text or URL</label>
+    <textarea id="textInput" placeholder="https://example.com or any text&#10;Try: mailto:, tel:, wifi details, etc.">https://claude.ai</textarea>
+
+    <div class="row">
+      <div>
+        <label for="sizeSelect">Size</label>
+        <select id="sizeSelect">
+          <option value="180">Small (180px)</option>
+          <option value="260" selected>Medium (260px)</option>
+          <option value="340">Large (340px)</option>
+          <option value="420">Extra Large (420px)</option>
+        </select>
+      </div>
+      <div>
+        <label for="ecSelect">Error Correction</label>
+        <select id="ecSelect">
+          <option value="L">Low</option>
+          <option value="M" selected>Medium</option>
+          <option value="Q">Quartile</option>
+          <option value="H">High</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Colors</label>
+    <div class="color-row">
+      <div class="swatch">
+        <input type="color" id="fgColor" value="#0f1130">
+        <span>Code color</span>
+      </div>
+      <div class="swatch">
+        <input type="color" id="bgColor" value="#ffffff">
+        <span>Background</span>
+      </div>
+    </div>
+
+    <div id="qrStage">
+      <div id="qrBox"><div id="placeholder">Your QR code will appear here</div></div>
+      <div class="actions">
+        <button id="downloadBtn" disabled>Download PNG</button>
+        <button id="clearBtn">Clear</button>
+      </div>
+      <div class="hint" id="statusHint"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  const textInput = document.getElementById('textInput');
+  const sizeSelect = document.getElementById('sizeSelect');
+  const ecSelect = document.getElementById('ecSelect');
+  const fgColor = document.getElementById('fgColor');
+  const bgColor = document.getElementById('bgColor');
+  const qrBox = document.getElementById('qrBox');
+  const downloadBtn = document.getElementById('downloadBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const statusHint = document.getElementById('statusHint');
+
+  let qr = null;
+  let debounceTimer = null;
+
+  const ecLevels = {
+    L: QRCode.CorrectLevel.L,
+    M: QRCode.CorrectLevel.M,
+    Q: QRCode.CorrectLevel.Q,
+    H: QRCode.CorrectLevel.H
+  };
+
+  function render() {
+    const text = textInput.value.trim();
+    qrBox.innerHTML = '';
+    if (!text) {
+      qrBox.innerHTML = '<div id="placeholder">Your QR code will appear here</div>';
+      downloadBtn.disabled = true;
+      statusHint.textContent = '';
+      return;
+    }
+
+    try {
+      const size = parseInt(sizeSelect.value, 10);
+      qr = new QRCode(qrBox, {
+        text: text,
+        width: size,
+        height: size,
+        colorDark: fgColor.value,
+        colorLight: bgColor.value,
+        correctLevel: ecLevels[ecSelect.value]
+      });
+      downloadBtn.disabled = false;
+      statusHint.textContent = size + '\u00d7' + size + 'px';
+    } catch (e) {
+      qrBox.innerHTML = '<div id="placeholder">Could not generate a code for this input</div>';
+      downloadBtn.disabled = true;
+      statusHint.textContent = '';
+    }
+  }
+
+  function debouncedRender() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(render, 250);
+  }
+
+  textInput.addEventListener('input', debouncedRender);
+  sizeSelect.addEventListener('change', render);
+  ecSelect.addEventListener('change', render);
+  fgColor.addEventListener('input', debouncedRender);
+  bgColor.addEventListener('input', debouncedRender);
+
+  clearBtn.addEventListener('click', () => {
+    textInput.value = '';
+    render();
+    textInput.focus();
+  });
+
+  downloadBtn.addEventListener('click', () => {
+    const canvas = qrBox.querySelector('canvas');
+    const img = qrBox.querySelector('img');
+    let dataUrl;
+    if (canvas) {
+      dataUrl = canvas.toDataURL('image/png');
+    } else if (img) {
+      dataUrl = img.src;
+    } else {
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = 'qr-code.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+
+  // initial render
+  render();
+})();
+</script>
+</body>
+</html>
